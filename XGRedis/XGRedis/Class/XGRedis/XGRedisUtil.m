@@ -7,7 +7,6 @@
 //
 
 #import "XGRedisUtil.h"
-#import "XGRedisPrefixHeader.h"
 
 @implementation XGRedisUtil
 

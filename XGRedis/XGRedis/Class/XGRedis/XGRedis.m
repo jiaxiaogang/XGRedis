@@ -9,7 +9,6 @@
 #import "XGRedis.h"
 #import "XGRedisUtil.h"
 #import "XGRedisDictionary.h"
-#import "XGRedisPrefixHeader.h"
 
 @interface XGRedis ()
 
@@ -21,6 +20,14 @@
 
 @implementation XGRedis
 
+static XGRedis *_instance;
++(XGRedis*) sharedInstance{
+    if (_instance == nil) {
+        _instance = [[XGRedis alloc] init];
+    }
+    return _instance;
+}
+
 -(id) init{
     self = [super init];
     if (self) {
@@ -30,7 +37,7 @@
 }
 
 -(void) initData{
-    self.dic = [XGRedisDictionary sharedInstance];
+    self.dic = [[XGRedisDictionary alloc] init];
     self.timer = [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(notificationTimer) userInfo:nil repeats:YES];
     self.gcMarks = [[NSMutableArray alloc] init];
 }
@@ -56,17 +63,19 @@
         findOldIndex = index;
     }];
     
-     //2. 插入数据
-    BOOL success = false;
-    if(self.dic.count <= findOldIndex) {
-        success = [self.dic addObject:obj forKey:key];
-    }else{
-        success = [self.dic insertObject:obj key:key atIndex:findOldIndex];
-    }
-    
-    //3. 插入gcMark
-    if (success && time!= NSNotFound) {
-        [self createGCMark:key time:time];
+    if (time > 0) {
+        //2. 插入数据
+        BOOL success = false;
+        if(self.dic.count <= findOldIndex) {
+            success = [self.dic addObject:obj forKey:key];
+        }else{
+            success = [self.dic insertObject:obj key:key atIndex:findOldIndex];
+        }
+        
+        //3. 插入gcMark
+        if (success && time!= NSNotFound) {
+            [self createGCMark:key time:time];
+        }
     }
 }
 
